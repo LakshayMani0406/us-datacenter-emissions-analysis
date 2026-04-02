@@ -1,0 +1,131 @@
+---
+title: "Phase 2 - Regression Analysis: Drivers of Data Center CO2 Emissions"
+author: "Lakshay Mani"
+date: "2026-03-30"
+output: html_document
+---
+
+## Overview
+
+This analysis identifies which factors statistically drive CO2 emissions 
+from U.S. data centers, using OLS regression with three predictors:
+energy consumption, grid carbon intensity, and renewable energy percentage.
+
+**Data Sources:**
+
+- LBNL 2024 US Data Center Energy Usage Report
+- Ember (2026) via Our World in Data
+- EIA Monthly Energy Review March 2026, Table 2.6
+
+---
+
+## Load Data
+
+```{r setup, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+
+df <- read.csv("master_dataset.csv")
+head(df)
+str(df)
+```
+
+---
+
+## Correlation Analysis
+
+Before regression, check how each variable relates to emissions.
+
+```{r correlation}
+cor_matrix <- cor(df[, c("DC_Energy_TWh", 
+                          "Grid_CarbonIntensity_gCO2perKWh",
+                          "Renewable_Pct",
+                          "Derived_CO2_MtCO2")])
+round(cor_matrix, 3)
+```
+
+---
+
+## OLS Regression Model
+
+```{r regression}
+model <- lm(Derived_CO2_MtCO2 ~ DC_Energy_TWh + 
+                                  Grid_CarbonIntensity_gCO2perKWh + 
+                                  Renewable_Pct, 
+            data = df)
+summary(model)
+```
+
+---
+
+## Multicollinearity Check (VIF)
+
+VIF values above 5 indicate high multicollinearity, above 10 are severe.
+Given the high correlations between predictors, this check confirms whether
+the full model coefficients should be interpreted with caution.
+
+```{r vif_check, message=FALSE, warning=FALSE}
+if (!require(car)) install.packages("car", repos="http://cran.r-project.org")
+library(car)
+vif(model)
+```
+
+---
+
+## Visualize: Actual vs Fitted
+
+```{r fitted_plot}
+df$Fitted <- fitted(model)
+
+ggplot(df, aes(x = Year)) +
+  geom_line(aes(y = Derived_CO2_MtCO2, color = "Actual"), linewidth = 1) +
+  geom_line(aes(y = Fitted, color = "Model Fitted"), 
+            linetype = "dashed", linewidth = 1) +
+  labs(title = "Regression Model: Actual vs Fitted CO2 Emissions",
+       x = "Year", y = "CO2 Emissions (Mt CO2)",
+       color = "Series") +
+  theme_minimal()
+```
+
+---
+
+## Individual Predictor Models
+
+```{r simple_models}
+# Model 1: Energy alone
+model_simple <- lm(Derived_CO2_MtCO2 ~ DC_Energy_TWh, data = df)
+summary(model_simple)
+
+# Model 2: Carbon intensity alone
+model_ci <- lm(Derived_CO2_MtCO2 ~ Grid_CarbonIntensity_gCO2perKWh, data = df)
+summary(model_ci)
+
+# Model 3: Renewables alone
+model_ren <- lm(Derived_CO2_MtCO2 ~ Renewable_Pct, data = df)
+summary(model_ren)
+
+# Compare R-squared across all three
+cat("R-squared comparison:\n")
+cat("Energy alone:           ", round(summary(model_simple)$r.squared, 4), "\n")
+cat("Carbon intensity alone: ", round(summary(model_ci)$r.squared, 4), "\n")
+cat("Renewables alone:       ", round(summary(model_ren)$r.squared, 4), "\n")
+```
+
+---
+
+## Phase 2 Findings
+
+OLS regression confirms **DC energy consumption** is the dominant 
+driver of emissions (R² = 0.9959, p < 0.001). Every additional 
+1 TWh of data center energy adds **0.33 Mt CO2**.
+
+Carbon intensity (R² = 0.785) and renewable percentage (R² = 0.825) 
+are statistically significant when isolated but secondary to energy volume.
+
+Note: High VIF values are expected given the strong correlation between 
+energy growth and renewable adoption over time. Individual predictor 
+models are therefore the cleaner analytical lens.
+
+**Implication:** LBNL's emissions underestimate is not from 
+mispredicting energy growth — it's from underestimating the carbon 
+intensity of the specific grids powering data centers.
