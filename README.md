@@ -77,7 +77,7 @@ CO2 emissions accurate when verified against independent 2025/2026 data?
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/us-datacenter-emissions
+git clone https://github.com/LakshayMani0406/us-datacenter-emissions-analysis
 
 # Install Python dependencies
 pip install pandas matplotlib seaborn numpy
