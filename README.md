@@ -1,3 +1,5 @@
+> ⚠️ Superseded by [gridpulse](https://github.com/LakshayMani0406/gridpulse) — early prototype, kept for history.
+
 # US Data Center Emissions: Verifying Government Predictions Against Reality
 
 A three-phase analytical project using Python and R
