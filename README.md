@@ -1,4 +1,4 @@
-> ⚠️ Superseded by [gridpulse](https://github.com/LakshayMani0406/gridpulse) — early prototype, kept for history.
+> ⚠️ Superseded by [gridpulse](https://github.com/LakshayMani0406/gridpulse) — early prototype with known methodological issues (see gridpulse/docs/originals_audit.md); kept for history.
 
 # US Data Center Emissions: Verifying Government Predictions Against Reality
 
